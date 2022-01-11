@@ -1,0 +1,23 @@
+{
+  "name": "autentication",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iaguerreles/autentication.git"
+  },
+  "author": "iago",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iaguerreles/autentication/issues"
+  },
+  "homepage": "https://github.com/iaguerreles/autentication#readme",
+  "dependencies": {
+    "mongoose": "^6.1.6",
+    "nodemon": "^2.0.15"
+  }
+}
