@@ -1,10 +1,16 @@
 const express = require('express');
 const app = express();
+const path = require('path')
 
 app.use(express.urlencoded());
 
-const User = require('./routes/user.routes');
+const usuariosRouter = require("./routes/user.routes");
+const tokenRouter = require("./routes/token.routes");
 
-app.use('/', User);
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'pug')
 
-module.exports = app
+app.use("/token", tokenRouter);
+app.use("/usuarios", usuariosRouter);
+
+module.exports = app;

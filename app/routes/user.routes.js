@@ -1,11 +1,12 @@
-const express = require('express');
-const UserController = require('../controllers/User.controller');
+let express = require("express");
+let router = express.Router();
+let usuarioController = require("../controllers/User.controller");
 
-const router = express.Router();
-
-router.get('/login/:error?', UserController.login)
-      .post('/login', UserController.find)
-      .get('/register/:error?', UserController.register)
-      .get('/logout', UserController.logout)
+router.get("/", usuarioController.list)
+      .get("/create", usuarioController.create_get)
+      .post("/create", usuarioController.create)
+      .post("/:id/delete", usuarioController.deleted)
+      .get("/:id/update", usuarioController.update_get)
+      .post("/:id/update", usuarioController.update);
 
 module.exports = router;

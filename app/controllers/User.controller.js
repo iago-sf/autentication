@@ -1,110 +1,83 @@
-const User = require('../models/User');
-
-/**********************************************************
- *                        FIND                            *
- **********************************************************/
-function find(req, res, next){
-  User.find({})
-  .then(users => {
-    if(users.length == 1){
-      req.body.users = users;
-      next();
-
-    } else {
-      next();
-    }
-  })
-  .catch(err =>{
-    req.body.error = err;
-    next();
-  });
-}
-
-/**********************************************************
- *                        CHECK                           *
- **********************************************************/
-/* function check(req, res, next){
-  let data = {}
-
-  if(!req.body.login){
-    if(!req.body.name || req.body.name.trim() == ''){
-      req.body.error = 'err';
-      next();
-    } else {
-      data['name'] = req.body.name;
-    }
-  }
-
-  if(!req.body.email || req.body.email.trim() == ''
-  || !req.body.password || req.body.password.trim() == ''){
-    req.body.error = 'err';
-    next();
-
-  } else {
-    // comprobar email
-    var format = /[A-Za-z1-9]+@[A-Za-z1-9]+\.[A-Za-z]+/;
-    if(!req.body.email.match(format)){
-      req.body.error = 'err';
-      next();
-    }
-
-    // hash de la contraseña
-    const shaObj = new jsSHA("SHA-256", "TEXT", { encoding: "UTF8" });
-    shaObj.update(req.body.password);
-    req.body.password = shaObj.getHash("HEX");
-
-    data['email'] = req.body.email;
-    data['password'] = req.body.password;
-
-    req.body.user = data;
-    next();
-  }
-} */
-
-/**********************************************************
- *                        LOGIN                           *
- **********************************************************/
-function login(req, res, next){
-  if(req.body.error){
-    res.redirect('/login/error');
-
-  } else {
-    // crear cookie
-
-    res.redirect('/');
-  }
-}
-
-/**********************************************************
- *                       REGISTER                         *
- **********************************************************/
-function register(req, res, next){
-  if(req.body.exists || req.body.error) {
-    res.redirect('/register/error');
-
-  } else if (req.body.dExists){
-    let user = new User(req.body.user);
-
-    user.save()
-      .then(user => 
-        res.status(201).redirect('/login')
-      )
-      .catch(err => res.status(500).send({err}));
-  }
-}
-
-/**********************************************************
- *                        LOGOUT                          *
- **********************************************************/
-function logout(req, res){
-  // eliminar la cookie
-
-  res.redirect('/');
-}
+let Usuario = require("../models/User");
 
 module.exports = {
-  find,
-  login,
-  register,
-  logout,
-}
+  list: function (req, res, next) {
+    Usuario.find({}, function (err, usuarios) {
+      if (err) res.send(500, err.message);
+      res.render("usuarios/index", { usuarios: usuarios });
+    });
+  },
+  update_get: function (req, res, next) {
+    Usuario.findById(req.params.id, function (err, usuario) {
+      res.render("usuarios/update", { errors: {}, usuario: usuario });
+    });
+  },
+  update: function (req, res, next) {
+    let update_values = { nombre: req.body.nombre };
+    Usuario.findByIdAndUpdate(
+      req.params.id,
+      update_values,
+      function (err, usuario) {
+        if (err) {
+          console.log(err);
+          res.render("usuario/update", {
+            errors: err.errors,
+            usuario: new Usuario({
+              nombre: req.body.nombre,
+              email: req.body.email,
+            }),
+          });
+        } else {
+          res.redirect("/usuarios");
+          return;
+        }
+      }
+    );
+  },
+  create_get: function (req, res, next) {
+    res.render("usuarios/create", { errors: {}, usuario: new Usuario() });
+  },
+  create: function (req, res, next) {
+    if (req.body.password != req.body.confirm_password) {
+      res.render("usuarios/create", {
+        errors: {
+          confirm_password: {
+            message: "No coincide con el password introducido.",
+          },
+        },
+        usuario: new Usuario({
+          nombre: req.body.nombre,
+          email: req.body.email,
+        }),
+      });
+      return;
+    }
+    Usuario.create(
+      {
+        nombre: req.body.nombre,
+        email: req.body.email,
+        password: req.body.password,
+      },
+      function (err, nuevoUsario) {
+        if (err) {
+          res.render("usuarios/create", {
+            errors: err.errors,
+            usuario: new Usuario({
+              nombre: req.body.nombre,
+              email: req.body.email,
+            }),
+          });
+        } else {
+          nuevoUsario.enviar_email_bienvenida();
+          res.redirect("/usuarios");
+        }
+      }
+    );
+  },
+  deleted: function (req, res, next) {
+    Usuario.findByIdAndDelete(req.body.id, function (err) {
+      if (err) next(err);
+      else res.redirect("/usuarios");
+    });
+  },
+};

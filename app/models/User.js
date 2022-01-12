@@ -1,13 +1,16 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const uniqueValidator = require("mongoose-unique-validator");
+const Token = require("./Token");
+const crypto = require("crypto");
+const mailer = require('nodemailer')
 
 const validateEmail = function (email) {
   let re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/;
   return re.test(email);
-}
+};
 
-const UserSchema = new mongoose.Schema({
+const usuarioSchema = new mongoose.Schema({
   nombre: {
     type: String,
     trim: true,
@@ -38,22 +41,56 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.plugin(uniqueValidator, {message: "El email ya existe para otro usuario."});
+usuarioSchema.plugin(uniqueValidator, {
+  message: "El email ya existe para otro usuario.",
+});
 
 // Define una acción previa a una o varias acciones de manipulación de datos
-// En este caso encripta la contraseña 
-UserSchema.pre("save", function(next) {
-  if (this.isModified("password")){
+// En este caso encripta la contraseña
+usuarioSchema.pre("save", function (next) {
+  if (this.isModified("password")) {
     let saltRounds = 10;
     this.password = bcrypt.hashSync(this.password, saltRounds);
   }
- 
+
   next();
 });
 
+usuarioSchema.methods.validPassword = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
 
-UserSchema.methods.validPassword = function (password) {
-  return bcrypt.compareSync (password, this.password);
-}
+// Crear un email de bienvenida con el token
+usuarioSchema.methods.enviar_email_bienvenida = function (cb) {
+  let token = new Token({
+    _userId: this.id,
+    token: crypto.randomBytes(16).toString("hex"),
+  }); //El token es un String en hexadecimal
 
-module.exports = mongoose.model("users", UserSchema);
+  let email_destination = this.email;
+
+  token.save(function (err) {
+    if (err) return console.log(err.message);
+
+    let mailOptions = {
+      from: "no-reply@iago.com",
+      to: email_destination,
+      subject: "Verificación de cuenta",
+      text:
+        "Hola,\n\n" +
+        "Por favor, para verificar su cuenta haga click en este enlace: \n" +
+        "http://localhost" +
+        "/token/confirmation/" +
+        token.token +
+        ".\n",
+    };
+
+    mailer.sendMail(mailOptions, function (err) {
+      if (err) return console.log(err.message);
+
+      console.log("Se ha enviado un email de bienvenida a " + email_destination + ".");
+    });
+  });
+};
+
+module.exports = mongoose.model("Usuario", usuarioSchema);
