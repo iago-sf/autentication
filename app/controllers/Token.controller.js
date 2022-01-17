@@ -17,12 +17,10 @@ module.exports = {
 
         if (usuario.verificado) return res.redirect("/usuarios");
 
-        usuario.verificado = true;
-
-        usuario.save(function (err) {
+        Usuario.findByIdAndUpdate(token._userId, {verificado: true}, function (err) {
           if (err) return res.status(500).send({ msg: err.message });
 
-          res.redirect("/");
+          res.redirect("/usuarios");
         });
       });
     });

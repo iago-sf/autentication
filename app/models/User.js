@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const uniqueValidator = require('mongoose-unique-validator');
 const Token = require('./Token');
 const crypto = require('crypto');
-const mailer = require('../mailer/mailer')
+const mailer = require('../mailer/mailer');
 
 const validateEmail = function (email) {
   let re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/;
