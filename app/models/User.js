@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const uniqueValidator = require('mongoose-unique-validator');
-const Token = require('./Token');
-const crypto = require('crypto');
-const mailer = require('../mailer/mailer');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const uniqueValidator = require("mongoose-unique-validator");
+const Token = require("./Token");
+const crypto = require("crypto");
+const mailer = require("../mailer/mailer");
 
 const validateEmail = function (email) {
   let re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/;
@@ -88,8 +88,44 @@ usuarioSchema.methods.enviar_email_bienvenida = function (cb) {
     mailer.sendMail(mailOptions, function (err) {
       if (err) return console.log(err.message);
 
-      console.log("Se ha enviado un email de bienvenida a " + email_destination + ".");
+      console.log(
+        "Se ha enviado un email de bienvenida a " + email_destination + "."
+      );
     });
+  });
+};
+
+usuarioSchema.methods.resetPassword = function (cb) {
+  let token = new Token({
+    _userId: this.id,
+    token: crypto.randomBytes(16).toString("hex"),
+  });
+
+  let email_destination = this.email;
+
+  token.save(function (err) {
+    if (err) return cb(err);
+
+    let mailOptions = {
+      from: "no-reply@redbicicletas.com",
+      to: email_destination,
+      subject: "Reseteo de password de cuenta",
+      text:
+        "Hola,\n\n" +
+        "Por favor, para resetear el password de su cuenta haga click en este enlace: \n" +
+        "localhost" +
+        "/resetPassword/" +
+        token.token +
+        ".\n",
+    };
+
+    mailer.sendMail(mailOptions, function (err) {
+      if (err) return cb(err);
+
+      console.log("Se ha enviado un email para resetear el password a: " + email_destination + ".");
+    });
+
+    cb(null);
   });
 };
 
