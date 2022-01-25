@@ -3,8 +3,10 @@ const app = express();
 const path = require("path");
 const Usuario = require("./models/User");
 const Token = require("./models/Token");
+const jwt = require("jsonwebtoken");
 
 app.use(express.urlencoded());
+app.set('secretkey','JWT_PWD_!\!Ñ22ç334ñ');
 
 const passport = require("./config/passport");
 const session = require("express-session");
@@ -25,12 +27,14 @@ app.use(passport.session());
 
 const usuariosRouter = require("./routes/user.routes");
 const tokenRouter = require("./routes/token.routes");
+const indice = require("./routes/indice.routes");
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
 app.use("/token", tokenRouter);
 app.use("/usuarios", loggedIn, usuariosRouter);
+app.use("/indice", validarUsuario, indice);
 
 /*
  * LOGIN
@@ -125,6 +129,20 @@ function loggedIn(req,res,next) {
     console.log("Usuario no logueado");
     res.redirect("/login");
   }
+}
+
+function validarUsuario(req, res, next) {
+  jwt.verify(req.headers['x-access-token'], req.app.get('secretkey'), function(err, decoded){
+    if (err) {
+      res.json({status:"error", message: err.message, data:null});
+  
+    } else {
+      req.body.userId = decoded.id;
+      console.log('jwt verify: ' + decoded);
+    
+      next();
+    }
+  });
 }
  
 
