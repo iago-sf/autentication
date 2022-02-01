@@ -4,8 +4,10 @@ const path = require("path");
 const Usuario = require("./models/User");
 const Token = require("./models/Token");
 const jwt = require("jsonwebtoken");
+const bodyParser = require('body-parser');
 
-app.use(express.urlencoded());
+//app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.json());
 app.set('secretkey','JWT_PWD_!\!Ñ22ç334ñ');
 
 const passport = require("./config/passport");
@@ -28,6 +30,7 @@ app.use(passport.session());
 const usuariosRouter = require("./routes/user.routes");
 const tokenRouter = require("./routes/token.routes");
 const indice = require("./routes/indice.routes");
+const auth = require("./routes/auth.routes");
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -35,6 +38,7 @@ app.set("view engine", "pug");
 app.use("/token", tokenRouter);
 app.use("/usuarios", loggedIn, usuariosRouter);
 app.use("/indice", validarUsuario, indice);
+app.use("/", auth);
 
 /*
  * LOGIN

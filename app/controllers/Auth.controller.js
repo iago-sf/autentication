@@ -1,11 +1,10 @@
 var Usuario = require("../models/User");
-
 var bcrypt = require("bcrypt");
-
 var jwt = require("jsonwebtoken");
 
 module.exports = {
   authenticate: function (req, res, next) {
+    console.log(req.body)
     Usuario.findOne({ email: req.body.email }, function (err, userInfo) {
       if (err) {
         next(err);
